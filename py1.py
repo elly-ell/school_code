@@ -19,9 +19,11 @@ print("Hello, "+ name+"!")
 print(name+" likes "+color)
 
 # type conversion
-int()
-bool()
-float()
+# str() string
+# None or Null
+# int() intiger
+# bool() boolean
+# float() float
 by=int(input("Birth year:"))
 year=int(input("Current year: "))
 age = year - by
@@ -51,6 +53,7 @@ a= name.upper()
 b= name.lower()
 
 print(f'{a}\n{b}')
+
 
 
 
