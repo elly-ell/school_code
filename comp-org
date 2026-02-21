@@ -1,0 +1,154 @@
+import customtkinter as ctk
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_absolute_error 
+
+
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
+
+data = {
+    "Hours": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "Score": [42, 50, 55, 60, 65, 70, 72, 78, 85, 88, 92, 96]
+}
+
+
+df = pd.DataFrame(data)
+
+
+X = df[['Hours']]
+y = df[['Score']]
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+
+model = LinearRegression()
+model_trained = False
+
+
+
+
+def train_model():
+    global model_trained
+    model.fit(X_train, y_train)
+    slope = model.coef_[0][0]
+    intercept = model.intercept_[0]
+    y_pred = model.predict(X_test)
+    accuracy = r2_score(y_test, y_pred)
+    Mean = mean_absolute_error(y_test, y_pred)
+
+
+    result_box.configure(state="normal")
+    result_box.delete("0.0", "end")
+
+    result_box.insert(
+        "end",
+        f"MODEL TRAINED SUCCESSFULLY\n\n"
+        f"Regression Equation:\n"
+        f"Score = {slope:.2f} × Hours + {intercept:.2f}\n\n"
+        f"Accuracy (R²): {accuracy:.4f}\n"
+        f"Mean Absolute Error: {Mean:.2f}"
+    )
+
+
+    result_box.configure(state="disabled")
+    model_trained = True
+
+
+
+
+def predict_score():
+    if not model_trained:
+        result_box.configure(state="normal")
+        result_box.delete("0.0", "end")
+        result_box.insert("end", "Please train the model first.")
+        result_box.configure(state="disabled")
+        return
+
+
+    try:
+        hours = float(hours_entry.get())
+
+
+        prediction = model.predict([[hours]])
+
+
+        result_box.configure(state="normal")
+        result_box.delete("0.0", "end")
+
+
+        result_box.insert(
+            "end",
+            f"Study Hours: {hours}\n\n"
+            f"Predicted Exam Score:\n"
+            f"{prediction[0][0]:.2f}"
+        )
+
+        result_box.configure(state="disabled")
+
+    except:
+        result_box.configure(state="normal")
+        result_box.delete("0.0", "end")
+        result_box.insert("end", "Invalid Input. Enter numeric value.")
+        result_box.configure(state="disabled")
+
+
+def clear_fields():
+    hours_entry.delete(0, "end")
+    result_box.configure(state="normal")
+    result_box.delete("0.0", "end")
+    result_box.configure(state="disabled")
+
+
+def show_graph():
+    if not model_trained:
+        result_box.configure(state="normal")
+        result_box.delete("0.0", "end")
+        result_box.insert("end", "Train Model first")
+        result_box.configure(state="disabled")
+        return
+
+
+    plt.figure()
+    plt.scatter(X, y, color='blue', label='Actual Data')
+    plt.plot(X, model.predict(X), color='red', label='Regression Line')
+    plt.title("Student Score Prediction")
+    plt.xlabel("Study Hours")
+    plt.ylabel("Exam Score")
+    plt.legend()
+    plt.show()
+
+app = ctk.CTk()
+app.configure(fg_color="black") 
+app.title("Student Score Predictor")
+app.geometry("600x600")
+
+
+title = ctk.CTkLabel(app, text="Student Score Predictor", text_color="White", font=("Arial", 24, "bold"))
+title.pack(pady=20)
+
+
+hours_entry = ctk.CTkEntry(app,placeholder_text="Enter study hours",width=300,height=40)
+hours_entry.pack(pady=10)
+
+
+train_button = ctk.CTkButton(app, fg_color="green",text="1. Train Model",command=train_model)
+train_button.pack(padx=5, pady=5)
+predict_button = ctk.CTkButton(app, fg_color="green",text="2. Predict Score",command=predict_score)
+predict_button.pack(padx=5, pady=5)
+graph_button = ctk.CTkButton(app, fg_color="green",text="Show Graph", command=show_graph)
+graph_button.pack(padx=5, pady=5)
+clear_button = ctk.CTkButton(app, fg_color="green",text="Clear",command=clear_fields)
+clear_button.pack(padx=5, pady=5)
+result_box = ctk.CTkTextbox(app, width=400, height=150, font=("Arial", 14))
+result_box.pack(pady=5)
+result_box.configure(state="disabled")
+
+app.mainloop()
+
